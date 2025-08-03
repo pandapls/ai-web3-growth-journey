@@ -1,0 +1,158 @@
+---
+title: 动态NFT智能合约 - 示例项目
+description: 使用AI助手创建基于持有者互动程度变化外观的NFT合约
+author: 团队名称：AI³探索者
+team: 
+  - 张三（前端开发）
+  - 李四（智能合约）
+  - 王五（设计/产品）
+github: https://github.com/your-username/dynamic-nft-example
+demo: https://your-demo-site.vercel.app
+---
+
+# 动态NFT智能合约
+
+`![项目截图]`
+
+## 项目概述
+
+我们使用AI代码助手（Cursor）开发了一个动态NFT智能合约，该合约可以根据持有者的互动频率自动改变NFT的视觉外观。NFT随着持有者在链上活动的增加而"进化"，创造了更具互动性的数字资产体验。
+
+## 技术实现
+
+### 使用的AI工具
+
+- **Cursor**: 用于智能合约编码
+- **ChatGPT 4o**: 用于生成提示和调试
+- **Midjourney**: 用于创建NFT艺术资产
+
+### 核心功能
+
+1. **动态元数据**: 基于链上活动更新NFT元数据
+2. **活动记录**: 跟踪持有者与合约的互动
+3. **自动变化**: 根据预设阈值触发NFT外观变化
+4. **链上验证**: 所有变化都通过智能合约验证
+
+## AI辅助开发过程
+
+### 智能合约开发
+
+我们使用了以下提示来指导Cursor生成初始合约框架：
+
+```
+请帮我创建一个ERC721合约，包含以下功能：
+1. 基础铸造和转移功能
+2. 动态元数据，可以根据持有者活动更新
+3. 一个记录互动次数的函数
+4. 根据互动次数更新NFT外观的逻辑
+5. 安全可靠的访问控制
+```
+
+AI生成的初始代码需要多轮迭代优化。我们特别调整了：
+
+- 元数据存储结构
+- Gas优化
+- 安全性增强
+
+### 前端交互
+
+使用Cursor辅助开发了Next.js前端，简化了用户与合约的交互流程。
+
+## 项目亮点
+
+1. **创新应用**: 将NFT从静态收藏品转变为动态互动资产
+2. **技术挑战**: 解决了链上元数据更新的效率和成本问题
+3. **用户价值**: 创造了持续参与的激励机制
+4. **AI赋能**: 利用AI显著加速了开发流程，特别是在复杂逻辑设计方面
+
+## 未来展望
+
+1. 增加更多互动维度（社交互动、跨合约互动等）
+2. 优化Gas消耗
+3. 开发更丰富的视觉变化系统
+
+## 代码示例
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.19;
+
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract DynamicNFT is ERC721URIStorage, Ownable {
+    struct TokenData {
+        uint256 interactionCount;
+        uint8 currentLevel;
+    }
+    
+    mapping(uint256 => TokenData) private _tokenData;
+    mapping(uint8 => string) private _levelURIs;
+    uint8 private constant MAX_LEVEL = 3;
+    
+    // 等级阈值
+    uint256[] private _levelThresholds = [0, 5, 15, 30];
+    
+    event TokenLevelUp(uint256 indexed tokenId, uint8 newLevel);
+    event Interaction(uint256 indexed tokenId, address indexed user);
+    
+    constructor() ERC721("Dynamic NFT", "DNFT") Ownable(msg.sender) {
+        // 设置初始等级的URI
+        _levelURIs[0] = "ipfs://QmBasicLevelURI";
+        _levelURIs[1] = "ipfs://QmIntermediateLevelURI";
+        _levelURIs[2] = "ipfs://QmAdvancedLevelURI";
+        _levelURIs[3] = "ipfs://QmMaxLevelURI";
+    }
+    
+    function mint(address to) public onlyOwner {
+        uint256 tokenId = totalSupply() + 1;
+        _safeMint(to, tokenId);
+        _tokenData[tokenId] = TokenData(0, 0);
+        _setTokenURI(tokenId, _levelURIs[0]);
+    }
+    
+    function interact(uint256 tokenId) public {
+        require(_exists(tokenId), "Token does not exist");
+        require(ownerOf(tokenId) == msg.sender, "Only owner can interact");
+        
+        TokenData storage data = _tokenData[tokenId];
+        data.interactionCount++;
+        
+        emit Interaction(tokenId, msg.sender);
+        
+        // 检查是否应该升级
+        _checkAndUpdateLevel(tokenId);
+    }
+    
+    function _checkAndUpdateLevel(uint256 tokenId) internal {
+        TokenData storage data = _tokenData[tokenId];
+        uint8 currentLevel = data.currentLevel;
+        
+        // 检查是否可以升级
+        if (currentLevel < MAX_LEVEL && 
+            data.interactionCount >= _levelThresholds[currentLevel + 1]) {
+            data.currentLevel++;
+            _setTokenURI(tokenId, _levelURIs[data.currentLevel]);
+            emit TokenLevelUp(tokenId, data.currentLevel);
+        }
+    }
+    
+    function getTokenData(uint256 tokenId) public view returns (uint256 interactions, uint8 level) {
+        require(_exists(tokenId), "Token does not exist");
+        TokenData memory data = _tokenData[tokenId];
+        return (data.interactionCount, data.currentLevel);
+    }
+    
+    // 更新等级URI（仅所有者）
+    function setLevelURI(uint8 level, string memory uri) public onlyOwner {
+        require(level <= MAX_LEVEL, "Invalid level");
+        _levelURIs[level] = uri;
+    }
+}
+```
+
+## 团队收获
+
+通过这个项目，我们深入体验了AI如何加速智能合约开发流程。AI工具不仅帮助我们快速生成代码框架，还在调试和优化阶段提供了宝贵的建议。特别是在处理复杂的链上状态管理问题时，AI的辅助大大减少了开发时间。
+
+我们也发现提示工程（Prompt Engineering）对有效利用AI至关重要—精确的提示能够产生更有用的代码建议，而模糊的提示则可能导致需要大量修改的结果。这个经验将帮助我们在未来项目中更高效地使用AI工具。
