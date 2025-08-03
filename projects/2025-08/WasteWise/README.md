@@ -9,3 +9,6 @@
 前端：nextjs
 agent 开发: mastra
 智能合约：hardhat
+
+
+合约地址: 0x0e4bb69f3a455fd17832bb6E80dbd61E0aFF20Fc
